@@ -36,6 +36,7 @@ export class SandboxViolationStore {
 }
 
 export class SandboxManager {
+  static isSupportedPlatform(): boolean { return false }
   constructor(_config: SandboxRuntimeConfig) {}
   async start(): Promise<void> { throw new Error('sandbox-runtime stub: not implemented') }
   async stop(): Promise<void> {}
