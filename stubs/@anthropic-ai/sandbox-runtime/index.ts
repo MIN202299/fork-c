@@ -35,13 +35,49 @@ export class SandboxViolationStore {
   clear(): void { this.violations = [] }
 }
 
+const _store = new SandboxViolationStore()
+
 export class SandboxManager {
+  // Platform check — always false (sandbox not available in stub)
   static isSupportedPlatform(): boolean { return false }
-  constructor(_config: SandboxRuntimeConfig) {}
-  async start(): Promise<void> { throw new Error('sandbox-runtime stub: not implemented') }
-  async stop(): Promise<void> {}
-  async checkDependencies(): Promise<{ available: boolean; missing: string[] }> {
+
+  // Dependency check
+  static async checkDependencies(_opts?: unknown): Promise<{ available: boolean; missing: string[] }> {
     return { available: false, missing: ['sandbox-runtime'] }
   }
-  getViolationStore(): SandboxViolationStore { return new SandboxViolationStore() }
+
+  // Lifecycle
+  static async initialize(_config: SandboxRuntimeConfig, callback: () => Promise<void>): Promise<void> {
+    await callback()
+  }
+  static updateConfig(_config: SandboxRuntimeConfig): void {}
+  static async reset(): Promise<void> {}
+  static async cleanupAfterCommand(): Promise<void> {}
+  static async waitForNetworkInitialization(): Promise<void> {}
+
+  // Command wrapping — passthrough, no sandbox
+  static async wrapWithSandbox<T>(fn: () => Promise<T>): Promise<T> { return fn() }
+
+  // Stderr annotation — passthrough
+  static annotateStderrWithSandboxFailures(_command: string, stderr: string): string { return stderr }
+
+  // Config getters — all return undefined/null (sandbox disabled)
+  static getFsReadConfig(): FsReadRestrictionConfig | undefined { return undefined }
+  static getFsWriteConfig(): FsWriteRestrictionConfig | undefined { return undefined }
+  static getNetworkRestrictionConfig(): NetworkRestrictionConfig | undefined { return undefined }
+  static getIgnoreViolations(): IgnoreViolationsConfig | undefined { return undefined }
+  static getAllowUnixSockets(): boolean { return true }
+  static getAllowLocalBinding(): boolean { return true }
+  static getEnableWeakerNestedSandbox(): boolean { return false }
+  static getProxyPort(): number | undefined { return undefined }
+  static getSocksProxyPort(): number | undefined { return undefined }
+  static getLinuxHttpSocketPath(): string | undefined { return undefined }
+  static getLinuxSocksSocketPath(): string | undefined { return undefined }
+  static getSandboxViolationStore(): SandboxViolationStore { return _store }
+
+  // Instance (unused in practice when isSupportedPlatform returns false)
+  constructor(_config: SandboxRuntimeConfig) {}
+  async start(): Promise<void> {}
+  async stop(): Promise<void> {}
+  getViolationStore(): SandboxViolationStore { return _store }
 }
