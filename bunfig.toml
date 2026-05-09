@@ -1,0 +1,7 @@
+[install]
+# Use the local stubs for private packages
+optional = false
+
+[run]
+# Enable bun:bundle support at runtime (fallback)
+bun = true

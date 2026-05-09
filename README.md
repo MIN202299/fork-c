@@ -4,6 +4,54 @@
 
 ---
 
+## 构建与运行
+
+### 前置要求
+
+- [Bun](https://bun.sh) v1.3+
+- `ANTHROPIC_API_KEY` 环境变量
+
+### 安装依赖
+
+```bash
+bun install
+
+# 删除 xss 携带的旧版 commander（与 @commander-js/extra-typings 冲突）
+rm -rf node_modules/xss/node_modules/commander
+bun pm cache rm
+```
+
+### 构建
+
+```bash
+bun run build
+# 产物：dist/cli.js（~18 MB）和 dist/cli.js.map（~50 MB source map）
+```
+
+### 运行
+
+```bash
+# 交互模式（需要真实终端）
+ANTHROPIC_API_KEY=<your-key> bun run start
+
+# 非交互模式（输出到 stdout，适合管道）
+ANTHROPIC_API_KEY=<your-key> bun run dist/cli.js -p "你的问题"
+
+# 查看所有选项
+bun run dist/cli.js --help
+```
+
+### 已知问题与修复说明
+
+| 问题 | 原因 | 修复 |
+|---|---|---|
+| `configureHelp is not a function` | `xss` 内嵌 commander v2.20.3 覆盖了根目录的 v13 | 删除 `node_modules/xss/node_modules/commander` |
+| `useEffectEvent is not a function` | `react-reconciler@0.31` 不支持 React 19 的新 hook | 升级到 `react-reconciler@0.33` |
+| `SandboxManager.isSupportedPlatform is not a function` | 私有包 stub 缺少静态方法 | 已在 `stubs/` 中补全 |
+| 版本检查拒绝启动 | 服务端要求 `>= 1.0.24` | `MACRO.VERSION` 已设为 `1.0.24` |
+
+---
+
 ## Research Context
 
 This repository is maintained by a **university student** studying:
