@@ -30,9 +30,21 @@ export const SandboxRuntimeConfigSchema = z.object({
 
 export class SandboxViolationStore {
   private violations: SandboxViolationEvent[] = []
-  add(event: SandboxViolationEvent): void { this.violations.push(event) }
+  private listeners: Set<(violations: SandboxViolationEvent[]) => void> = new Set()
+
+  add(event: SandboxViolationEvent): void {
+    this.violations.push(event)
+    this.listeners.forEach(l => l([...this.violations]))
+  }
   getAll(): SandboxViolationEvent[] { return [...this.violations] }
-  clear(): void { this.violations = [] }
+  getTotalCount(): number { return this.violations.length }
+  clear(): void { this.violations = []; this.listeners.forEach(l => l([])) }
+
+  subscribe(listener: (violations: SandboxViolationEvent[]) => void): () => void {
+    this.listeners.add(listener)
+    listener([...this.violations])
+    return () => { this.listeners.delete(listener) }
+  }
 }
 
 const _store = new SandboxViolationStore()
